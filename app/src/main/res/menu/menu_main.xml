@@ -1,0 +1,35 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.meetapp.onlinechat.ChatView">
+
+
+    <item
+        android:id="@+id/share"
+        android:icon="@drawable/share"
+        android:title="Share"
+        app:showAsAction="always"
+        android:orderInCategory="0" />
+
+    <item
+        android:id="@+id/thumb_up"
+        android:icon="@drawable/thumb_up"
+        android:title="Rate Online Dating"
+        app:showAsAction="always"
+        android:orderInCategory="0" />
+
+    <item
+        android:id="@+id/addPhoto"
+        android:icon="@drawable/photos"
+        android:title="Add Profile Photo"
+        app:showAsAction="always"
+        android:orderInCategory="0" />
+
+    <item
+        android:id="@+id/removePhoto"
+        android:icon="@drawable/item_delete"
+        android:title="Remove photo"
+        app:showAsAction="always"
+        android:orderInCategory="0" />
+
+</menu>
