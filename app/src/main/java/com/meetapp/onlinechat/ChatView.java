@@ -377,7 +377,7 @@ public class ChatView extends AppCompatActivity implements AsyncResponse{
 
             case R.id.share: {
                 String text = "Meet New People, Online Dating";
-                String subject = "https://play.google.com/store/apps/details?id=lovezone.onlinedating.com";
+                String subject = "https://play.google.com/store/apps/details?id=com.meetapp.onlinechat";
                 String shareText = "Share this app with friends";
 
                 Intent sendIntent = new Intent(android.content.Intent.ACTION_SEND);
