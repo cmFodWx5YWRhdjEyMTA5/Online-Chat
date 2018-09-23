@@ -49,14 +49,6 @@
         android:orientation="horizontal"
         android:visibility="gone" />
 
-    <com.google.android.gms.ads.AdView
-        android:id="@+id/mainAdView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        ads:adSize="SMART_BANNER"
-        ads:adUnitId="@string/Online_Banner" >
-    </com.google.android.gms.ads.AdView>
-
     <LinearLayout
         android:id="@+id/small_banner"
         android:layout_width="fill_parent"

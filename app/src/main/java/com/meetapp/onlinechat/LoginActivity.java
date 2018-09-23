@@ -212,7 +212,6 @@ public class LoginActivity extends AppCompatActivity {
 
     public void restartSelf() {
 
-
         Intent mStartActivity = new Intent(getBaseContext(), LoginActivity.class);
         int mPendingIntentId = 123456;
         PendingIntent mPendingIntent = PendingIntent.getActivity(
@@ -224,7 +223,6 @@ public class LoginActivity extends AppCompatActivity {
         mgr.set(AlarmManager.RTC, System.currentTimeMillis() + 100,
                 mPendingIntent);
         System.exit(0);
-
 
     }
 

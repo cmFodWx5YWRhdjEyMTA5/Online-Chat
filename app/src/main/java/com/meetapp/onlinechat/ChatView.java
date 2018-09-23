@@ -1,11 +1,13 @@
 package com.meetapp.onlinechat;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -15,8 +17,11 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -72,9 +77,6 @@ public class ChatView extends AppCompatActivity implements AsyncResponse{
     private Button btn_chat_send;
     private ProgressBar progressBar;
     private PopupWindow popupWindow;
-    private int keyboardHeight;
-    private AdView MainAdView;
-
     private Uri fileUri;
     private String imagepath;
     private static final int GALLERY_PICTURE = 1;
@@ -82,6 +84,9 @@ public class ChatView extends AppCompatActivity implements AsyncResponse{
 
     private final static int callRemoveMethod = 1;
     private final static int callThumbMethod = 2;
+
+    private static String TAG = "PermissionDemo";
+    private static final int REQUEST_WRITE_STORAGE = 112;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -106,70 +111,25 @@ public class ChatView extends AppCompatActivity implements AsyncResponse{
         linearLayout = (LinearLayout) findViewById(R.id.userPhoto_layout);
         linearLayout.setVisibility(View.GONE);
 
-        // init ads
-        MainAdView = (AdView) findViewById(R.id.mainAdView);
-        final AdRequest adRequest = new AdRequest.Builder().build();
-        MainAdView.loadAd(adRequest);
-
         initAdapter();
         setupActionBar();
 
         progressBar.setVisibility(View.VISIBLE);
 
-        MainAdView.setAdListener(new AdListener() {
-            @Override
+        final InterstitialAd interstitial = new InterstitialAd(getApplicationContext());
+        interstitial.setAdUnitId(onlineDating.interstitial_key);
+
+        AdRequest adRequest = new AdRequest.Builder().build();
+        interstitial.loadAd(adRequest);
+
+        interstitial.setAdListener(new AdListener() {
             public void onAdLoaded() {
-
-                if (messages == null) {
-                    if (onlineDating.currUser != null) {
-
-                        onlineDating.interstitial.show();
-                        chatMessages();
-
-                    }
-                }
-
+                interstitial.show();
             }
-
-            @Override
-            public void onAdFailedToLoad(int errorCode) {
-                // Code to be executed when an ad request fails.
+            public void onAdClosed(){
+                checkPermission();
             }
-
-            @Override
-            public void onAdClosed() {
-                progressBar.setVisibility(View.GONE);
-            }
-
         });
-
-
-        // keyboard is opened
-        edtMessage.getViewTreeObserver().addOnGlobalLayoutListener(
-                new ViewTreeObserver.OnGlobalLayoutListener() {
-
-                    @Override
-                    public void onGlobalLayout() {
-
-                        Rect r = new Rect();
-                        edtMessage.getWindowVisibleDisplayFrame(r);
-                        int screenHeight = edtMessage.getRootView().getHeight();
-
-                        int keypadHeight = screenHeight - r.bottom;
-
-                        if (keypadHeight > screenHeight * 0.15) {
-                            // keyboard is opened
-                            MainAdView.setVisibility(View.GONE);
-                        } else {
-
-                            MainAdView.setVisibility(View.VISIBLE);
-
-                        }
-
-                    }
-
-                });
-
 
 
 		/*---------------------------1----------------------------- */
@@ -188,6 +148,70 @@ public class ChatView extends AppCompatActivity implements AsyncResponse{
         });
 
 
+    }
+
+    private void checkPermission() {
+
+        //ask for the permission in android M
+        int permission = ContextCompat.checkSelfPermission(this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE);
+
+        if (permission != PackageManager.PERMISSION_GRANTED) {
+            Log.i(TAG, "Permission to record denied");
+
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setMessage("Permission to access the SD-CARD is required for this app.")
+                        .setTitle("Permission required");
+
+                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+
+                    public void onClick(DialogInterface dialog, int id) {
+                        Log.i(TAG, "Clicked");
+                        makeRequest();
+                    }
+                });
+
+                AlertDialog dialog = builder.create();
+                dialog.show();
+
+            } else {
+                makeRequest();
+            }
+        }
+        else
+            chatMessages();
+    }
+
+    protected void makeRequest() {
+        ActivityCompat.requestPermissions(this,
+                new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                REQUEST_WRITE_STORAGE);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case REQUEST_WRITE_STORAGE: {
+
+                if (grantResults.length == 0
+                        || grantResults[0] !=
+                        PackageManager.PERMISSION_GRANTED) {
+
+                    Log.i(TAG, "Permission has been denied by user");
+                    System.exit(0);
+
+                } else {
+
+                    Log.i(TAG, "Permission has been granted by user");
+                    chatMessages();
+
+                }
+                return;
+            }
+        }
     }
 
     private void SetSocket() {
@@ -253,15 +277,12 @@ public class ChatView extends AppCompatActivity implements AsyncResponse{
 
         String url = OnlineDating.SERVICE_URL + "load.php";
         request.execute(url);
-
-
     }
 
     @Override
     public void processFinish(String output) {
 
         ChatMessage Message = new ChatMessage();
-
         messages = Message.parseJson(output);
 
         if (messages.isEmpty())
@@ -284,7 +305,6 @@ public class ChatView extends AppCompatActivity implements AsyncResponse{
             // create new instance main socket
             OnlineDating.Mysocket = new MySocket(onlineDating.context);
             SetSocket();
-
         }
 
     }
